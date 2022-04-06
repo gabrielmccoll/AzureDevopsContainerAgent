@@ -1,0 +1,42 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: azdevops-scaledjob
+spec:
+  jobTargetRef:
+    template:
+      spec:
+        containers:
+        - name: azdevops-agent-job
+          image: localhost/dockeragent
+          imagePullPolicy: Always
+          env:
+          - name: AZP_URL
+            value: "https://dev.azure.com/<org>" #no slashes
+          - name: AZP_TOKEN
+            value: <pat>
+          - name: AZP_POOL
+            value: "gmtest"
+          - name: TARGETARCH
+            value: "linux-arm64"
+          volumeMounts:
+          - mountPath: /run/podman/podman.sock
+            name: podman-volume
+        volumes:
+        - name: podman-volume
+          hostPath:
+            path: /run/podman/podman.sock
+  pollingInterval: 10
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 0
+  maxReplicaCount: 10   
+  
+  scalingStrategy:
+    strategy: "default"               
+  triggers:
+  - type: azure-pipelines
+    metadata:
+      poolID: "13" #Get this from the ORG level not Project
+      organizationURLFromEnv: "AZP_URL"
+      personalAccessTokenFromEnv: "AZP_TOKEN"
+      targetPipelinesQueueLength: "1"
