@@ -26,7 +26,6 @@ jobs:
         with:
           images: gabrielmccoll/basic_ado_agent_keda
           tags: |
-            # minimal (short sha)
             type=sha  
       
       - name: Build and push Docker image
